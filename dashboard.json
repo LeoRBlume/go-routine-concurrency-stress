@@ -1,0 +1,215 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["go", "otel", "prometheus", "goroutine", "k6"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30m", "to": "now" },
+  "timezone": "",
+  "title": "Go Goroutine Lab — Full Observability",
+  "version": 1,
+  "panels": [
+
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "RPS por endpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (endpoint) (rate(go_lab_http_requests_total[1m]))", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Inflight por endpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (endpoint) (go_lab_http_inflight)", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Latência média (ms) por endpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 7 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum by (endpoint) (rate(go_lab_http_request_duration_ms_sum[1m])) / sum by (endpoint) (rate(go_lab_http_request_duration_ms_count[1m]))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "p95 Latência (ms) por endpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 7 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(go_lab_http_request_duration_ms_bucket[1m])))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "p99 Latência (ms) por endpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 14 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, endpoint) (rate(go_lab_http_request_duration_ms_bucket[1m])))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Erro % por endpoint (status != 2xx)",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 14 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "100 * (sum by (endpoint) (rate(go_lab_http_requests_total{status!~\"2..\"}[1m])) / sum by (endpoint) (rate(go_lab_http_requests_total[1m])))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Error RPS por endpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 21 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (endpoint) (rate(go_lab_http_requests_total{status!~\"2..\"}[1m]))", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Service A/B — p95 duração (ms)",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 21 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, service) (rate(go_lab_service_duration_ms_bucket[1m])))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Erros por serviço (RPS)",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 28 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum by (service) (rate(go_lab_service_errors_total[1m]))", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Semaphore wait p95 (ms) — async-limited",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 28 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_lab_serviceB_semaphore_wait_ms_bucket[1m])))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    },
+
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Inflight total vs p95 (saturação)",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 35 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "sum(go_lab_http_inflight)", "refId": "A" },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_lab_http_request_duration_ms_bucket[1m])))",
+          "refId": "B"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Goroutines (runtime)",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 42 },
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "go_lab_process_runtime_go_goroutines or go_goroutines", "refId": "A" }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Heap alloc (bytes)",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 42 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "go_lab_process_runtime_memory_heap_alloc_bytes or go_memstats_heap_alloc_bytes",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+    },
+
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "GC pause p95 (seconds)",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 49 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_gc_pauses_seconds_bucket[1m])))",
+          "refId": "A"
+        }
+      ],
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+    }
+
+  ]
+}

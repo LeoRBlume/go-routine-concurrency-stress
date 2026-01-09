@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: go-app
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - OTEL_SERVICE_NAME=go-goroutine-lab
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      # Se NÃO quiser traces, descomente a linha abaixo
+      # - OTEL_TRACES_EXPORTER=none
+    depends_on:
+      - otel-collector
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector.yml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4318:4318"   # OTLP HTTP (metrics + traces)
+      - "8889:8889"   # Prometheus scrape endpoint
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
