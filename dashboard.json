@@ -1,215 +1,588 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Go Goroutine Concurrency Lab - Prometheus metrics exported via OTel Collector (go_lab_*).",
   "editable": true,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
   "links": [],
-  "refresh": "5s",
-  "schemaVersion": 39,
-  "style": "dark",
-  "tags": ["go", "otel", "prometheus", "goroutine", "k6"],
-  "templating": { "list": [] },
-  "time": { "from": "now-30m", "to": "now" },
-  "timezone": "",
-  "title": "Go Goroutine Lab — Full Observability",
-  "version": 1,
+  "liveNow": false,
   "panels": [
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Requests per second by endpoint (rate over 1m).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
-      "type": "timeseries",
-      "title": "RPS por endpoint",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 0 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "expr": "sum by (endpoint) (rate(go_lab_http_requests_total[1m]))", "refId": "A" }
+        {
+          "expr": "sum by (endpoint) (rate(go_lab_http_requests_total[1m]))",
+          "legendFormat": "{{endpoint}}",
+          "refId": "A"
+        }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "RPS per endpoint",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Average request latency per endpoint computed from histogram sum/count (1m rate).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "id": 2,
-      "type": "timeseries",
-      "title": "Inflight por endpoint",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
-      "datasource": "Prometheus",
-      "targets": [
-        { "expr": "sum by (endpoint) (go_lab_http_inflight)", "refId": "A" }
-      ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
-    },
-
-    {
-      "id": 3,
-      "type": "timeseries",
-      "title": "Latência média (ms) por endpoint",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 7 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
           "expr": "sum by (endpoint) (rate(go_lab_http_request_duration_ms_sum[1m])) / sum by (endpoint) (rate(go_lab_http_request_duration_ms_count[1m]))",
+          "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "Average latency (ms) per endpoint",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "p95 latency per endpoint from histogram buckets (5m rate window).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(go_lab_http_request_duration_ms_bucket[5m])))",
+          "legendFormat": "{{endpoint}}",
+          "refId": "A"
+        }
+      ],
+      "title": "p95 latency (ms) per endpoint",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "p99 latency per endpoint from histogram buckets (5m rate window).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
       "id": 4,
-      "type": "timeseries",
-      "title": "p95 Latência (ms) por endpoint",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 7 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(go_lab_http_request_duration_ms_bucket[1m])))",
+          "expr": "histogram_quantile(0.99, sum by (le, endpoint) (rate(go_lab_http_request_duration_ms_bucket[5m])))",
+          "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "p99 latency (ms) per endpoint",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "5xx + 408 error rate per endpoint (1m window).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
       "id": 5,
-      "type": "timeseries",
-      "title": "p99 Latência (ms) por endpoint",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 14 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum by (le, endpoint) (rate(go_lab_http_request_duration_ms_bucket[1m])))",
+          "expr": "sum by (endpoint) (rate(go_lab_http_requests_total{status=~\"5..|408\"}[1m]))",
+          "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "Error rate (5xx + 408) per endpoint",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Current in-flight requests per endpoint (gauge).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
       "id": 6,
-      "type": "timeseries",
-      "title": "Erro % por endpoint (status != 2xx)",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 14 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "100 * (sum by (endpoint) (rate(go_lab_http_requests_total{status!~\"2..\"}[1m])) / sum by (endpoint) (rate(go_lab_http_requests_total[1m])))",
+          "expr": "sum by (endpoint) (go_lab_http_inflight)",
+          "legendFormat": "{{endpoint}}",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "Inflight requests per endpoint",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Semaphore wait p95 for /async-limited (shows backpressure cost).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
       "id": 7,
-      "type": "timeseries",
-      "title": "Error RPS por endpoint",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 21 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "targets": [
-        { "expr": "sum by (endpoint) (rate(go_lab_http_requests_total{status!~\"2..\"}[1m]))", "refId": "A" }
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_lab_serviceB_semaphore_wait_ms_bucket[5m])))",
+          "legendFormat": "p95 wait",
+          "refId": "A"
+        }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "ServiceB semaphore wait p95 (ms)",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Service duration p95 by service (A vs B).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
       "id": 8,
-      "type": "timeseries",
-      "title": "Service A/B — p95 duração (ms)",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 21 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le, service) (rate(go_lab_service_duration_ms_bucket[1m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, service) (rate(go_lab_service_duration_ms_bucket[5m])))",
+          "legendFormat": "service {{service}}",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "Service duration p95 (ms) by service",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Service errors per second by service (rate over 1m).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 30
+      },
       "id": 9,
-      "type": "timeseries",
-      "title": "Erros por serviço (RPS)",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 28 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
-        { "expr": "sum by (service) (rate(go_lab_service_errors_total[1m]))", "refId": "A" }
+        {
+          "expr": "sum by (service) (rate(go_lab_service_errors_total[1m]))",
+          "legendFormat": "service {{service}}",
+          "refId": "A"
+        }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "title": "Service error rate by service",
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Current goroutine count (runtime instrumentation).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
       "id": 10,
-      "type": "timeseries",
-      "title": "Semaphore wait p95 (ms) — async-limited",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 28 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_lab_serviceB_semaphore_wait_ms_bucket[1m])))",
+          "expr": "go_lab_go_goroutine_count",
+          "legendFormat": "goroutines",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
-    },
-
-    {
-      "id": 11,
-      "type": "timeseries",
-      "title": "Inflight total vs p95 (saturação)",
-      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 35 },
-      "datasource": "Prometheus",
-      "targets": [
-        { "expr": "sum(go_lab_http_inflight)", "refId": "A" },
-        {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_lab_http_request_duration_ms_bucket[1m])))",
-          "refId": "B"
-        }
-      ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
-    },
-
-    {
-      "id": 12,
-      "type": "timeseries",
       "title": "Goroutines (runtime)",
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 42 },
-      "datasource": "Prometheus",
-      "targets": [
-        { "expr": "go_lab_process_runtime_go_goroutines or go_goroutines", "refId": "A" }
-      ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+      "type": "timeseries"
     },
-
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Allocation rate derived from allocated_bytes_total (bytes/sec).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(go_lab_go_memory_allocated_bytes_total[1m])",
+          "legendFormat": "alloc rate",
+          "refId": "A"
+        }
+      ],
+      "title": "Allocation rate (bytes/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "GC goal heap size (bytes). Useful to observe GC pressure trend.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 37
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "go_lab_go_memory_gc_goal_bytes",
+          "legendFormat": "gc goal",
+          "refId": "A"
+        }
+      ],
+      "title": "GC goal bytes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "GOGC setting (percent).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
       "id": 13,
-      "type": "timeseries",
-      "title": "Heap alloc (bytes)",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 42 },
-      "datasource": "Prometheus",
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "targets": [
         {
-          "expr": "go_lab_process_runtime_memory_heap_alloc_bytes or go_memstats_heap_alloc_bytes",
+          "expr": "go_lab_go_config_gogc_percent",
+          "legendFormat": "GOGC (%)",
           "refId": "A"
         }
       ],
-      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
-    },
-
-    {
-      "id": 14,
-      "type": "timeseries",
-      "title": "GC pause p95 (seconds)",
-      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 49 },
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(go_gc_pauses_seconds_bucket[1m])))",
-          "refId": "A"
-        }
-      ],
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" } }
+      "title": "GOGC (%)",
+      "type": "timeseries"
     }
-
-  ]
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "go",
+    "otel",
+    "prometheus",
+    "grafana",
+    "concurrency"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Go Goroutine Concurrency Lab (go_lab_*)",
+  "uid": "go-goroutine-lab-local",
+  "version": 1,
+  "weekStart": ""
 }

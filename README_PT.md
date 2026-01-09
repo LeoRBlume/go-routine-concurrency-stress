@@ -198,13 +198,13 @@ Acessos:
 ### Linux
 
 ```bash
-docker run --rm -i   --add-host=host.docker.internal:host-gateway   -e TARGET_RPS=30   -e REQ_TIMEOUT=5s   grafana/k6 run - < k6-4endpoints-equal-bursts.js
+docker run --rm -i   --add-host=host.docker.internal:host-gateway   -e TARGET_RPS=30   -e REQ_TIMEOUT=5s   grafana/k6 run - < k6.js
 ```
 
 ### Windows / macOS
 
 ```bash
-docker run --rm -i   -e TARGET_RPS=30   -e REQ_TIMEOUT=5s   grafana/k6 run - < k6-4endpoints-equal-bursts.js
+docker run --rm -i   -e TARGET_RPS=30   -e REQ_TIMEOUT=5s   grafana/k6 run - < k6.js
 ```
 
 ---

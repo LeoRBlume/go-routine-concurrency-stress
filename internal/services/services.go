@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"context"
@@ -6,13 +6,12 @@ import (
 	"math/rand"
 	"sync"
 	"time"
-
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 )
 
+// Services simulates external dependencies used by the HTTP handlers.
+// Service B is intentionally slower and less reliable to create contention scenarios.
 type Services struct {
-	// Contenção artificial (opcional). Comente o lock/unlock em ServiceB se quiser baseline mais saudável.
+	// Optional artificial contention. If enabled, ServiceB becomes serialized under load.
 	mu sync.Mutex
 }
 
@@ -26,56 +25,40 @@ type ServiceBData struct {
 	SleepMs int    `json:"sleepMs"`
 }
 
+// New creates a new Services instance.
+func New() *Services { return &Services{} }
+
 func randRange(min, max int) int {
 	return min + rand.Intn(max-min+1)
 }
 
-// ServiceA: rápido e estável (50–150ms)
-// Simula: cache, operação local, baixa variância.
+// ServiceA simulates a fast and stable dependency.
 func (s *Services) ServiceA(ctx context.Context) (ServiceAData, error) {
-	tr := otel.Tracer("go-goroutine-lab/services")
-	_, span := tr.Start(ctx, "ServiceA")
-	defer span.End()
-
 	ms := randRange(50, 150)
-	span.SetAttributes(
-		attribute.Int("sleep_ms", ms),
-		attribute.String("profile", "fast-stable"),
-	)
 
 	select {
 	case <-time.After(time.Duration(ms) * time.Millisecond):
 		return ServiceAData{Value: "data-from-A", SleepMs: ms}, nil
 	case <-ctx.Done():
-		span.SetAttributes(attribute.Bool("canceled", true))
 		return ServiceAData{}, ctx.Err()
 	}
 }
 
-// ServiceB: lento, instável e com erro intermitente (300–1200ms + 5% erro)
-// Simula: dependência externa/DB/API.
+// ServiceB simulates a slow and unreliable dependency.
+// - 300–1200ms latency
+// - 5% error rate
+// - optional mutex contention (artificial bottleneck)
 func (s *Services) ServiceB(ctx context.Context) (ServiceBData, error) {
-	tr := otel.Tracer("go-goroutine-lab/services")
-	_, span := tr.Start(ctx, "ServiceB")
-	defer span.End()
-
-	// 5% de erro simula instabilidade real
 	if rand.Float64() < 0.05 {
-		span.SetAttributes(attribute.Bool("simulated_error", true))
 		return ServiceBData{}, errors.New("service B simulated failure")
 	}
 
 	ms := randRange(300, 1200)
-	span.SetAttributes(
-		attribute.Int("sleep_ms", ms),
-		attribute.String("profile", "slow-unstable"),
-	)
 
 	select {
 	case <-time.After(time.Duration(ms) * time.Millisecond):
 		return ServiceBData{Value: "data-from-B", SleepMs: ms}, nil
 	case <-ctx.Done():
-		span.SetAttributes(attribute.Bool("canceled", true))
 		return ServiceBData{}, ctx.Err()
 	}
 }
