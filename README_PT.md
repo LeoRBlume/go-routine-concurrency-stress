@@ -232,6 +232,4 @@ Ele mostra, na prática, que:
 
 ---
 
-## Licença
-
-MIT
+![report](img/report.png)

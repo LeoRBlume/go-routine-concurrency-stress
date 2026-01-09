@@ -151,6 +151,4 @@ Latency shows the effect. Inflight shows the cause.
 
 ---
 
-## License
-
-MIT
+![report](img/report.png)
